@@ -1,0 +1,23 @@
+<package version="0.0">
+  <name>com.livecode.library.androidfingerprint</name>
+  <title>AndroidFingerprint</title>
+  <author>Livecode</author>
+  <version>1.0.0</version>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.java"/>
+  <requires name="com.livecode.foreign"/>
+  <metadata key="android.features">hardware.fingerprint</metadata>
+  <metadata key="android.hardware.fingerprint.required">true</metadata>
+  <metadata key="android.permissions">USE_FINGERPRINT</metadata>
+  <handler name="isHardwareDetected" parameters="" return="boolean"/>
+  <handler name="hasEnrolledFingerprints" parameters="" return="boolean"/>
+  <handler name="fingerprint_authenticate" parameters="" return="number"/>
+  <handler name="fingerprint_cancel" parameters="" return="nothing"/>
+  <handler name="onCancel" parameters="" return="nothing"/>
+  <handler name="onAuthenticationError" parameters="in JObject,in JObject" return="nothing"/>
+  <handler name="onAuthenticationFailed" parameters="" return="nothing"/>
+  <handler name="onAuthenticationHelp" parameters="in JObject,in JObject" return="nothing"/>
+  <handler name="onAuthenticationSucceeded" parameters="in JObject" return="nothing"/>
+  <handler name="toTest" parameters="" return="nothing"/>
+</package>

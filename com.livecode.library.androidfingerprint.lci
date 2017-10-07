@@ -1,0 +1,14 @@
+import module com.livecode.library.androidfingerprint
+  use com.livecode.java
+  use com.livecode.foreign
+  handler isHardwareDetected() returns Boolean
+  handler hasEnrolledFingerprints() returns Boolean
+  handler fingerprint_authenticate() returns Number
+  handler fingerprint_cancel() returns nothing
+  handler onCancel() returns nothing
+  handler onAuthenticationError(in pErrCode as JObject, in pErrText as JObject) returns nothing
+  handler onAuthenticationFailed() returns nothing
+  handler onAuthenticationHelp(in pErrCode as JObject, in pErrText as JObject) returns nothing
+  handler onAuthenticationSucceeded(in pResult as JObject) returns nothing
+  handler toTest() returns nothing
+end module

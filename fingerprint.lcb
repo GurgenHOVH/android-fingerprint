@@ -1,0 +1,135 @@
+library com.livecode.library.androidfingerprint
+
+use com.livecode.foreign
+use com.livecode.java
+use com.livecode.engine
+
+metadata title is "AndroidFingerprint"
+metadata author is "Livecode"
+metadata version is "1.0.0"
+
+metadata android.features is "hardware.fingerprint"
+metadata android.hardware.fingerprint.required is "true"
+metadata android.permissions is "USE_FINGERPRINT"
+
+__safe foreign handler _JNI_GetAndroidEngine() returns JObject \
+   binds to "java:com.runrev.android.Engine>getEngine()Lcom/runrev/android/Engine;!static"
+
+__safe foreign handler _JNI_GetEngineContext(in pEngine as JObject) returns JObject \
+   binds to "java:android.view.View>getContext()Landroid/content/Context;"
+
+__safe foreign handler _JNI_GetSystemService(in pContext as JObject, in pService as JString) returns JObject \
+    binds to "java:android.content.Context>getSystemService(Ljava/lang/String;)Ljava/lang/Object;"
+
+__safe foreign handler _isHardwareDetected(in pService as JObject) returns JBoolean \
+    binds to "java:android.hardware.fingerprint.FingerprintManager>isHardwareDetected()Z"
+
+__safe foreign handler _hasEnrolledFingerprints(in pService as JObject) returns JBoolean \
+    binds to "java:android.hardware.fingerprint.FingerprintManager>hasEnrolledFingerprints()Z"
+
+__safe foreign handler _Authenticate(in pManager as JObject, in pSignal as JObject, in pCallbacks as JObject) returns nothing \
+binds to "java:com.runrev.android.FingerprintAuthenticationWrapper>authenticate(Landroid/hardware/fingerprint/FingerprintManager;Landroid/os/CancellationSignal;Landroid/hardware/fingerprint/FingerprintManager$AuthenticationCallback;)V!static"
+
+__safe foreign handler _AuthenticationCallbackProxy(in pCallbacks as Array) returns JObject \
+   binds to "java:com.runrev.android.FingerprintAuthenticationWrapper$Interface>interface()"
+
+__safe foreign handler _FingerprintAuthenticationWrapper(in pCallbackProxy as JObject) returns JObject \
+   binds to "java:com.runrev.android.FingerprintAuthenticationWrapper>new(Lcom/runrev/android/FingerprintAuthenticationWrapper$Interface;)"
+
+__safe foreign handler _CancellationSignal() returns JObject \
+   binds to "java:android.os.CancellationSignal>new()Ljava/lang/Object;"
+
+__safe foreign handler _CancellationSignalListener(in pCallbacks as Array) returns JObject \
+   binds to "java:android.os.CancellationSignal$OnCancelListener>interface()"
+
+__safe foreign handler _SetOnCancelListener(in pSignal as JObject, in pListener as JObject) returns nothing \
+   binds to "java:android.os.CancellationSignal>setOnCancelListener(Landroid/os/CancellationSignal$OnCancelListener;)V"
+
+__safe foreign handler _fingerprint_cancel(in pObject as JObject) returns nothing \
+   binds to "java:android.os.CancellationSignal>cancel()V"
+
+variable mCancelationSignal as JObject
+
+public handler isHardwareDetected() returns Boolean
+    variable tContext as JObject
+    put _JNI_GetEngineContext(_JNI_GetAndroidEngine()) into tContext
+
+
+    variable tService as JObject
+    put _JNI_GetSystemService(tContext, StringToJString("fingerprint")) into tService
+
+    return _isHardwareDetected(tService)
+end handler
+
+public handler hasEnrolledFingerprints() returns Boolean
+    variable tContext as JObject
+    put _JNI_GetEngineContext(_JNI_GetAndroidEngine()) into tContext
+
+
+    variable tService as JObject
+    put _JNI_GetSystemService(tContext, StringToJString("fingerprint")) into tService
+
+    return _hasEnrolledFingerprints(tService)
+end handler
+
+
+public handler fingerprint_authenticate() returns Number
+  variable tCancelationSignal as JObject
+  put _CancellationSignal() into tCancelationSignal
+
+  variable tCancelationCallback as JObject
+  put _CancellationSignalListener({"onCancel":onCancel}) into tCancelationCallback
+
+  _SetOnCancelListener(tCancelationSignal, tCancelationCallback)
+
+  -- Save the Cancelation object to be able cancel fingerprint authentication
+  put tCancelationSignal into mCancelationSignal
+
+  variable tCallbackProxy as JObject
+  put _AuthenticationCallbackProxy({"onAuthenticationError": onAuthenticationError, "onAuthenticationFailed": onAuthenticationFailed, "onAuthenticationHelp": onAuthenticationHelp, "onAuthenticationSucceeded": onAuthenticationSucceeded}) into tCallbackProxy
+
+  variable tAuthenticatCallback as JObject
+  put _FingerprintAuthenticationWrapper(tCallbackProxy) into tAuthenticatCallback
+
+  variable tContext as JObject
+  put _JNI_GetEngineContext(_JNI_GetAndroidEngine()) into tContext
+
+  variable tService as JObject
+  put _JNI_GetSystemService(tContext, StringToJString("fingerprint")) into tService
+
+  _Authenticate(tService, tCancelationSignal, tAuthenticatCallback)
+
+  return 1
+end handler
+
+
+public handler fingerprint_cancel() returns nothing
+   _fingerprint_cancel(mCancelationSignal)
+end handler
+
+
+public handler onCancel() returns nothing
+   throw "Fingerprint_cancel"
+end handler
+
+public handler onAuthenticationError(in pErrCode as JObject, in pErrText as JObject) returns nothing
+   throw "authenticationError"
+end handler
+
+public handler onAuthenticationFailed() returns nothing
+   throw "authenticationFailed"
+end handler
+
+public handler onAuthenticationHelp(in pHelpCode as JObject, in pHelpText as JObject) returns nothing
+   throw "authenticationHelp"
+end handler
+
+public handler onAuthenticationSucceeded(in pResult as JObject) returns nothing
+   throw "AuthenticationSucceeded"
+end handler
+
+public handler toTest() returns nothing
+   throw "AuthenticationSucceeded"
+end handler
+
+end library
